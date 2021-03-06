@@ -1,0 +1,138 @@
+version: '3.5'
+
+services:
+  mqnamesrv1:
+    image: dyrnq/rocketmq:4.8.0
+    container_name: mqnamesrv1
+    # ports:
+    #   - 9876:9876
+    volumes:
+      - ./persistent/mqnamesrv1/logs:/home/rocketmq/logs
+      - ./persistent/mqnamesrv1/store:/home/rocketmq/store
+    environment:
+      TZ: "Asia/Shanghai"
+      JAVA_OPT_EXT: "-Duser.home=/home/rocketmq -Xms512m -Xmx512m -Xmn128m -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=128m"
+    command: ["mqnamesrv"]
+    networks:
+        rocketmq:
+          aliases:
+            - mqnamesrv1
+  mqnamesrv2:
+    image: dyrnq/rocketmq:4.8.0
+    container_name: mqnamesrv2
+    # ports:
+    #   - 9876:9876
+    volumes:
+      - ./persistent/mqnamesrv2/logs:/home/rocketmq/logs
+      - ./persistent/mqnamesrv2/store:/home/rocketmq/store
+    environment:
+      TZ: "Asia/Shanghai"
+      JAVA_OPT_EXT: "-Duser.home=/home/rocketmq -Xms512m -Xmx512m -Xmn128m -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=128m"
+    command: ["mqnamesrv"]
+    networks:
+        rocketmq:
+          aliases:
+            - mqnamesrv2
+  mqnamesrv3:
+    image: dyrnq/rocketmq:4.8.0
+    container_name: mqnamesrv3
+    # ports:
+    #   - 9876:9876
+    volumes:
+      - ./persistent/mqnamesrv3/logs:/home/rocketmq/logs
+      - ./persistent/mqnamesrv3/store:/home/rocketmq/store
+    environment:
+      TZ: "Asia/Shanghai"
+      JAVA_OPT_EXT: "-Duser.home=/home/rocketmq -Xms512m -Xmx512m -Xmn128m -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=128m"
+    command: ["mqnamesrv"]
+    networks:
+        rocketmq:
+          aliases:
+            - mqnamesrv3
+  mqbroker1:
+    image: dyrnq/rocketmq:4.8.0
+    container_name: mqbroker1
+    # ports:
+    #   - 10909:10909
+    #   - 10911:10911
+    volumes:
+      - ./persistent/mqbroker1/logs:/home/rocketmq/logs
+      - ./persistent/mqbroker1/store:/home/rocketmq/store
+      - ./mqbroker1.conf:/etc/rocketmq/broker.conf
+    environment:
+        TZ: "Asia/Shanghai"
+        JAVA_OPT_EXT: "-Duser.home=/home/rocketmq -Xms512m -Xmx512m -Xmn128m -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=128m"
+    command: ["mqbroker","-c","/etc/rocketmq/broker.conf"]
+    depends_on:
+      - mqnamesrv1
+      - mqnamesrv2
+      - mqnamesrv3
+    networks:
+      rocketmq:
+        aliases:
+          - mqbroker1
+  mqbroker2:
+    image: dyrnq/rocketmq:4.8.0
+    container_name: mqbroker2
+    # ports:
+    #   - 10909:10909
+    #   - 10911:10911
+    volumes:
+      - ./persistent/mqbroker2/logs:/home/rocketmq/logs
+      - ./persistent/mqbroker2/store:/home/rocketmq/store
+      - ./mqbroker2.conf:/etc/rocketmq/broker.conf
+    environment:
+        TZ: "Asia/Shanghai"
+        JAVA_OPT_EXT: "-Duser.home=/home/rocketmq -Xms512m -Xmx512m -Xmn128m -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=128m"
+    command: ["mqbroker","-c","/etc/rocketmq/broker.conf"]
+    depends_on:
+      - mqnamesrv1
+      - mqnamesrv2
+      - mqnamesrv3
+    networks:
+      rocketmq:
+        aliases:
+          - mqbroker2
+  mqbroker3:
+    image: dyrnq/rocketmq:4.8.0
+    container_name: mqbroker3
+    # ports:
+    #   - 10909:10909
+    #   - 10911:10911
+    volumes:
+      - ./persistent/mqbroker3/logs:/home/rocketmq/logs
+      - ./persistent/mqbroker3/store:/home/rocketmq/store
+      - ./mqbroker3.conf:/etc/rocketmq/broker.conf
+    environment:
+        TZ: "Asia/Shanghai"
+        JAVA_OPT_EXT: "-Duser.home=/home/rocketmq -Xms512m -Xmx512m -Xmn128m -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=128m"
+    command: ["mqbroker","-c","/etc/rocketmq/broker.conf"]
+    depends_on:
+      - mqnamesrv1
+      - mqnamesrv2
+      - mqnamesrv3
+    networks:
+      rocketmq:
+        aliases:
+          - mqbroker3
+  rmqconsole:
+    image: styletang/rocketmq-console-ng
+    container_name: rmqconsole
+    ports:
+      - 28080:8080
+    environment:
+        JAVA_OPTS: "-Drocketmq.namesrv.addr=mqnamesrv1:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=false"
+    depends_on:
+      - mqnamesrv1
+      - mqnamesrv2
+      - mqnamesrv3
+    networks:
+      rocketmq:
+        aliases:
+          - rmqconsole
+networks:
+  rocketmq:
+    driver: bridge
+    ipam:
+      config:
+      - subnet: 172.222.0.0/16
