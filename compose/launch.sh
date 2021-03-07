@@ -23,7 +23,7 @@ while [ $# -gt 0 ]; do
  		--remove|-r)
 			docker-compose down
 			exit 0
-			;;           
+			;;
 		--*)
 			echo "Illegal option $1"
 			;;
@@ -35,8 +35,17 @@ sed -e "s@_BROKERNAME@mqbroker1@g" -e "s@_NAMESRVADDR@mqnamesrv1:9876;mqnamesrv2
 sed -e "s@_BROKERNAME@mqbroker2@g" -e "s@_NAMESRVADDR@mqnamesrv1:9876;mqnamesrv2:9876;mqnamesrv3:9876@" broker.sed > mqbroker2.conf
 sed -e "s@_BROKERNAME@mqbroker3@g" -e "s@_NAMESRVADDR@mqnamesrv1:9876;mqnamesrv2:9876;mqnamesrv3:9876@" broker.sed > mqbroker3.conf
 
-if [ -z "$DETACHED" ]; then
-    docker-compose up
-else
+
+is_detached() {
+	if [ -z "$DETACHED" ]; then
+		return 1
+	else
+		return 0
+	fi
+}
+
+if is_detached; then
     docker-compose up -d
+else
+    docker-compose up
 fi
