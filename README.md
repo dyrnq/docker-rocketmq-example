@@ -68,6 +68,16 @@ kubectl get pod -o wide -lapp=rocketmq-broker
 
 ```
 
+```bash
+kubectl exec -it rocketmq-broker-0 -- bash -c "./mqadmin clusterList -n rocketmq-namesrv-1.rocketmq-namesrv.default.svc.cluster.local:9876"
+RocketMQLog:WARN No appenders could be found for logger (io.netty.util.internal.PlatformDependent0).
+RocketMQLog:WARN Please initialize the logger system properly.
+#Cluster Name     #Broker Name            #BID  #Addr                  #Version                #InTPS(LOAD)       #OutTPS(LOAD) #PCWait(ms) #Hour #SPACE
+DefaultCluster    rocketmq-broker-0       0     172.16.8.224:10911     V4_8_0                   0.00(0,0ms)         0.00(0,0ms)          0 448646.10 0.8097
+DefaultCluster    rocketmq-broker-1       0     172.16.4.144:10911     V4_8_0                   0.00(0,0ms)         0.00(0,0ms)          0 448646.10 0.1669
+DefaultCluster    rocketmq-broker-2       0     172.16.3.125:10911     V4_8_0                   0.00(0,0ms)         0.00(0,0ms)          0 448646.10 0.1470
+```
+
 ## ref
 
 * <https://github.com/dyrnq/docker-rocketmq>
