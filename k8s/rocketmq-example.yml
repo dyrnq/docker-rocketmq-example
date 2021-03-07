@@ -1,0 +1,216 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rocketmq-namesrv
+  labels:
+    app: rocketmq-namesrv-namesrv
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - port: 9876
+      name: server
+      targetPort: 9876
+  selector:
+    app: rocketmq-namesrv
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rocketmq-namesrv
+spec:
+  serviceName: rocketmq-namesrv
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: rocketmq-namesrv
+      annotations:
+        pod.alpha.kubernetes.io/initialized: "true"
+    spec:
+      # affinity:
+      #   podAntiAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       - labelSelector:
+      #           matchExpressions:
+      #             - key: "app"
+      #               operator: In
+      #               values:
+      #                 - nacos
+      #         topologyKey: "kubernetes.io/hostname"
+      containers:
+        - name: rocketmq
+          imagePullPolicy: IfNotPresent
+          image: dyrnq/rocketmq
+          # resources:
+          #   requests:
+          #     memory: "2Gi"
+          #     cpu: "500m"
+          ports:
+            - containerPort: 9876
+          env:
+            - name: TZ
+              value: "Asia/Shanghai"
+            - name: JAVA_OPT_EXT
+              value: "-Duser.home=/home/rocketmq -Xms512m -Xmx512m -Xmn128m -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=128m"
+          command: ["mqnamesrv"]    
+  selector:
+    matchLabels:
+      app: rocketmq-namesrv
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rocketmq-broker-conf
+data:
+  broker.sed: |
+    # 集群名字
+    brokerClusterName=DefaultCluster
+
+    # broker名字
+    brokerName=_BROKERNAME
+
+    # 0表示Master >0表示Slave
+    brokerId=0
+
+    # nameServer地址分号分割
+    namesrvAddr=_NAMESRVADDR
+
+    # 自动创建Topic的话，默认queue数量是多少
+    defaultTopicQueueNums=4
+
+    # 是否允许Broker自动创建Topic，建议线下开启，线上关闭
+    autoCreateTopicEnable=true
+
+    # 是否允许Broker自动创建订阅组，建议线下开启，线上关闭
+    autoCreateSubscriptionGroup=true
+
+    # 监听端口
+    listenPort=10911
+
+    # 文件删除时间点，默认凌晨4点
+    deleteWhen=04
+
+    # 文件保留时长，默认48小时
+    fileReservedTime=120
+
+    # commitLog每个文件的大小默认1G
+    mapedFileSizeCommitLog=1073741824
+
+    # ConsumeQueue每个文件默认存30W条
+    mapedFileSizeConsumeQueue=300000
+
+    #destroyMapedFileIntervalForcibly=120000
+
+    #redeleteHangedFileInterval=120000
+
+    # 检测物理文件磁盘空间
+    diskMaxUsedSpaceRatio=88
+
+    # 存储路径
+    #storePathRootDir=/rocketmq/store
+
+    # commitLog 存储路径
+    #storePathCommitLog=/rocketmq/store/commitlog
+
+    # 消费队列存储
+    #storePathConsumeQueue=/rocketmq/store/consumequeue
+
+    # 消息索引存储路径
+    #storePathIndex=/rocketmq/store/index
+
+    # checkpoint 文件存储路径
+    #storeCheckpoint=/rocketmq/store/checkpoint
+
+    # abort 文件存储路径
+    #abortFile=/rocketmq/store/abort
+
+    # 限制的消息大小
+    maxMessageSize=65536
+
+    #flushCommitLogLeastPages=4
+
+    #flushConsumeQueueLeastPages=2
+
+    #flushCommitLogThoroughInterval=10000
+
+    #flushConsumeQueueThoroughInterval=60000
+
+    # Broker的角色
+    # ASYNC_MASTER 异步复制Master
+    # SYNC_MASTER 同步双写Master
+    # SLAVE
+    brokerRole=ASYNC_MASTER
+
+    # 刷盘方式
+    # ASYNC_FLUSH 异步刷盘
+    # SYNC_FLUSH 同步刷盘
+    flushDiskType=ASYNC_FLUSH
+
+    # 发消息线程池数量
+    #sendMessageThreadPoolNums=128
+
+    # 拉消息线程池数量
+    #pullMessageThreadPoolNums=128
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rocketmq-broker
+spec:
+  serviceName: rocketmq-broker
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: rocketmq-broker
+      annotations:
+        pod.alpha.kubernetes.io/initialized: "true"
+    spec:
+      containers:
+        - name: rocketmq
+          imagePullPolicy: IfNotPresent
+          image: dyrnq/rocketmq
+          ports:
+            - containerPort: 10909
+              name: remote
+              protocol: TCP
+            - containerPort: 10911
+              name: fast
+              protocol: TCP
+            - containerPort: 10912
+              name: ha
+              protocol: TCP
+          env:
+            - name: TZ
+              value: "Asia/Shanghai"
+            - name: JAVA_OPT_EXT
+              value: "-Duser.home=/home/rocketmq -Xms512m -Xmx512m -Xmn128m -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=128m"
+          command:
+          - /bin/bash
+          - -c
+          - |
+            #cat /home/rocketmq/broker.sed
+            mkdir -p /home/rocketmq/store/index
+            mkdir -p /home/rocketmq/store/commitlog
+            mkdir -p /home/rocketmq/store/consumequeue
+            mkdir -p /home/rocketmq/store/logs
+            HOSTNAME="$(hostname -s)"
+            #echo $HOSTNAME
+            if [ ! -d /etc/rocketmq/ ]; then
+              mkdir -p /etc/rocketmq/
+            fi            
+            sed -e "s@_BROKERNAME@$HOSTNAME@g" -e "s@_NAMESRVADDR@rocketmq-namesrv-0.rocketmq-namesrv.default.svc.cluster.local:9876;rocketmq-namesrv-1.rocketmq-namesrv.default.svc.cluster.local:9876;rocketmq-namesrv-2.rocketmq-namesrv.default.svc.cluster.local:9876@" /home/rocketmq/broker.sed > /etc/rocketmq/broker.conf
+            #cat /etc/rocketmq/broker.conf
+            exec mqbroker -c /etc/rocketmq/broker.conf
+          volumeMounts:
+          - name: rocketmq-broker-conf
+            mountPath: /home/rocketmq/broker.sed
+            subPath: broker.sed
+      volumes:
+      - name: rocketmq-broker-conf
+        configMap:
+          name: rocketmq-broker-conf
+  selector:
+    matchLabels:
+      app: rocketmq-broker
