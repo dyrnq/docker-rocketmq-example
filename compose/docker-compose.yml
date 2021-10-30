@@ -2,7 +2,7 @@ version: '3.5'
 
 services:
   mqnamesrv1:
-    image: dyrnq/rocketmq:4.8.0
+    image: dyrnq/rocketmq:4.9.2
     container_name: mqnamesrv1
     # ports:
     #   - 9876:9876
@@ -18,7 +18,7 @@ services:
           aliases:
             - mqnamesrv1
   mqnamesrv2:
-    image: dyrnq/rocketmq:4.8.0
+    image: dyrnq/rocketmq:4.9.2
     container_name: mqnamesrv2
     # ports:
     #   - 9876:9876
@@ -34,7 +34,7 @@ services:
           aliases:
             - mqnamesrv2
   mqnamesrv3:
-    image: dyrnq/rocketmq:4.8.0
+    image: dyrnq/rocketmq:4.9.2
     container_name: mqnamesrv3
     # ports:
     #   - 9876:9876
@@ -50,7 +50,7 @@ services:
           aliases:
             - mqnamesrv3
   mqbroker1:
-    image: dyrnq/rocketmq:4.8.0
+    image: dyrnq/rocketmq:4.9.2
     container_name: mqbroker1
     # ports:
     #   - 10909:10909
@@ -72,7 +72,7 @@ services:
         aliases:
           - mqbroker1
   mqbroker2:
-    image: dyrnq/rocketmq:4.8.0
+    image: dyrnq/rocketmq:4.9.2
     container_name: mqbroker2
     # ports:
     #   - 10909:10909
@@ -94,7 +94,7 @@ services:
         aliases:
           - mqbroker2
   mqbroker3:
-    image: dyrnq/rocketmq:4.8.0
+    image: dyrnq/rocketmq:4.9.2
     container_name: mqbroker3
     # ports:
     #   - 10909:10909
