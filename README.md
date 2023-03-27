@@ -5,9 +5,9 @@
 ### docker
 
 ```bash
-docker run -it --rm dyrnq/rocketmq:4.8.0 mqnamesrv
+docker run -it --rm dyrnq/rocketmq:4.9.4 mqnamesrv
 
-docker run -it --rm dyrnq/rocketmq:4.8.0 mqbroker
+docker run -it --rm dyrnq/rocketmq:4.9.4 mqbroker
 ```
 
 ### docker-compose-example

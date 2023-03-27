@@ -41,7 +41,7 @@ spec:
       containers:
         - name: rocketmq
           imagePullPolicy: IfNotPresent
-          image: dyrnq/rocketmq
+          image: dyrnq/rocketmq:4.9.4
           # resources:
           #   requests:
           #     memory: "2Gi"
@@ -170,7 +170,7 @@ spec:
       containers:
         - name: rocketmq
           imagePullPolicy: IfNotPresent
-          image: dyrnq/rocketmq
+          image: dyrnq/rocketmq:4.9.4
           ports:
             - containerPort: 10909
               name: remote
