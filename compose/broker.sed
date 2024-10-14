@@ -45,10 +45,10 @@ deleteWhen=04
 fileReservedTime=120
 
 # commitLog每个文件的大小默认1G
-mapedFileSizeCommitLog=1073741824
+# mapedFileSizeCommitLog=1073741824
 
 # ConsumeQueue每个文件默认存30W条
-mapedFileSizeConsumeQueue=300000
+# mapedFileSizeConsumeQueue=300000
 
 #destroyMapedFileIntervalForcibly=120000
 
