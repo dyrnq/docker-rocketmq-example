@@ -21,8 +21,10 @@ while [ $# -gt 0 ]; do
             DETACHED=1
             ;;
          --remove|-r)
-            docker-compose down
-            exit 0
+            remove_flag="1";
+            ;;
+         --rr|-rr)
+            remove_flag="2"
             ;;
         --*)
             echo "Illegal option $1"
@@ -31,9 +33,16 @@ while [ $# -gt 0 ]; do
     shift $(( $# > 0 ? 1 : 0 ))
 done
 
-sed -e "s@_BROKERNAME@mqbroker1@g" -e "s@_NAMESRVADDR@mqnamesrv1:9876;mqnamesrv2:9876;mqnamesrv3:9876@" broker.sed > mqbroker1.conf
-sed -e "s@_BROKERNAME@mqbroker2@g" -e "s@_NAMESRVADDR@mqnamesrv1:9876;mqnamesrv2:9876;mqnamesrv3:9876@" broker.sed > mqbroker2.conf
-sed -e "s@_BROKERNAME@mqbroker3@g" -e "s@_NAMESRVADDR@mqnamesrv1:9876;mqnamesrv2:9876;mqnamesrv3:9876@" broker.sed > mqbroker3.conf
+docker_compose_cmd="docker-compose";
+if command -v docker-compose 2>/dev/null 1>/dev/null; then
+    :
+elif docker compose version; then
+    docker_compose_cmd="docker compose"
+else
+    echo "docker compose Not found,please install..."
+    exit 1;
+fi
+
 
 
 is_detached() {
@@ -44,8 +53,29 @@ is_detached() {
     fi
 }
 
+fun_up(){
+
+sed -e "s@_BROKERNAME@mqbroker1@g" -e "s@_NAMESRVADDR@mqnamesrv1:9876;mqnamesrv2:9876;mqnamesrv3:9876@" broker.sed > mqbroker1.conf
+sed -e "s@_BROKERNAME@mqbroker2@g" -e "s@_NAMESRVADDR@mqnamesrv1:9876;mqnamesrv2:9876;mqnamesrv3:9876@" broker.sed > mqbroker2.conf
+sed -e "s@_BROKERNAME@mqbroker3@g" -e "s@_NAMESRVADDR@mqnamesrv1:9876;mqnamesrv2:9876;mqnamesrv3:9876@" broker.sed > mqbroker3.conf
+
+
+
 if is_detached; then
-    docker-compose up -d
+    ${docker_compose_cmd} up -d
 else
-    docker-compose up
+    ${docker_compose_cmd} up
+fi
+
+}
+
+
+if [ "$remove_flag" = "1" ]; then
+    echo "will remove all containers, ${docker_compose_cmd} down"
+    ${docker_compose_cmd} down
+elif [ "$remove_flag" = "2" ]; then
+    echo "will remove all containers and data, ${docker_compose_cmd} down --volumes"
+    ${docker_compose_cmd} down --volumes
+else
+    fun_up
 fi
