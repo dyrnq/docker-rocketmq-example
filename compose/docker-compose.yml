@@ -1,4 +1,4 @@
-version: '3.5'
+# version: '3.5'
 
 services:
   mqnamesrv1:
@@ -116,7 +116,9 @@ services:
         aliases:
           - mqbroker3
   rmqconsole:
-    image: styletang/rocketmq-console-ng
+    #image: styletang/rocketmq-console-ng
+    # https://github.com/apache/rocketmq-dashboard
+    image: apacherocketmq/rocketmq-dashboard:2.0.1
     container_name: rmqconsole
     ports:
       - 28080:8080
